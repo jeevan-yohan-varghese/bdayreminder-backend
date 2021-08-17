@@ -1,7 +1,7 @@
 # Bday remineder Backend
 REST Api for bday reminder app which will send notifications to your telegram channel on birthdays of people you have added.
 ## Features
-[ ] User authentication
+[x] User authentication
 [ ] CRUD person
 [ ] Telegram bot notification
 [ ] Update telegram channel
