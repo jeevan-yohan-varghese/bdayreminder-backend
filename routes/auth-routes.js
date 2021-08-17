@@ -1,13 +1,13 @@
 const router = require('express').Router()
 const admin = require('firebase-admin')
 const jwt = require('jsonwebtoken')
-const verifyToken = require('../middlewares/verify-token');
+const verifyApiKey = require('../middlewares/verify-apikey');
 const serviceAccount = require("../serviceAccountKey.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
-router.post('/login', verifyToken, (req, res, next) => {
+router.post('/login', verifyApiKey, (req, res, next) => {
     admin.auth().verifyIdToken(req.body.authtoken)
         .then((decodedToken) => {
             console.log(decodedToken.email);
@@ -19,7 +19,8 @@ router.post('/login', verifyToken, (req, res, next) => {
               success: true,
               authToken: token
             })
-        }).catch(() => {
+        }).catch((err) => {
+            console.log(err);
             return res.status(403).send('Unauthorized')
         });
 

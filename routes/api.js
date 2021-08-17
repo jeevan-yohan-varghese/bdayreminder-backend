@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const verifyToken = require('../middlewares/verify-token');
+const verifyApiKey = require('../middlewares/verify-apikey');
 const verifyUserAuth = require('../middlewares/verify-user-auth');
 
 router.get('/', (req, res, next) => {
@@ -9,7 +9,7 @@ router.get('/', (req, res, next) => {
 
 
 //A sample route which requires authorization
-router.get('/requireAuth', verifyToken, verifyUserAuth, (req, res, next)=>{
+router.get('/requireAuth', verifyApiKey, verifyUserAuth, (req, res, next)=>{
     res.send(`Welcome ${req.currentUser._name}`);
 });
 
