@@ -16,4 +16,14 @@ REST Api for bday reminder app which will send notifications to your telegram ch
 
 `$ node index`
 
+#### Note 
+Make sure that you have the following **environment variables**
+
+- API_KEY
+- TOKEN_SECRET
+- DB_CONNECTION_STRING
+- FIREBASE_PROJECT_ID
+- FIREBASE_PRIVATE_KEY
+- FIREBASE_CLIENT_EMAIL
+
 Now the node app will be running on **localhost:5000** 
