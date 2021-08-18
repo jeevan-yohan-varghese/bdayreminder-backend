@@ -10,7 +10,7 @@ REST Api for bday reminder app which will send notifications to your telegram ch
 
 ## Install
 
-`$ git clone <github url here>`
+`$ git clone https://github.com/jeevan-yohan-varghese/bdayreminder-backend.git`
 
 `$ npm i`
 
