@@ -2,12 +2,20 @@ const router = require('express').Router()
 const admin = require('firebase-admin')
 const jwt = require('jsonwebtoken')
 const verifyApiKey = require('../middlewares/verify-apikey');
-const serviceAccount = require("../serviceAccountKey.json");
 
+require('dotenv').config();
 const User=require('../models/user-model');
+
+
+console.log(process.env.FIREBASE_PROJECT_ID);
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    })
+    
+  });
 
 router.post('/login', verifyApiKey, (req, res, next) => {
     admin.auth().verifyIdToken(req.body.authtoken)
