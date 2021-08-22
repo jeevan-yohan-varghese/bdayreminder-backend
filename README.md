@@ -4,9 +4,11 @@ REST Api for bday reminder app which will send notifications to your telegram ch
 
 - [x] User authentication
 - [x] Person Endpoints
-- [ ] Telegram bot notification
-- [ ] Update telegram channel
-- [ ] Schedule notification
+- [x] Telegram bot notification
+- [x] Update telegram channel
+- [x] Schedule notification
+- [x] Upcoming birthdays
+- [x] Todays birthdays
 
 ## Install
 
@@ -25,5 +27,6 @@ Make sure that you have the following **environment variables**
 - FIREBASE_PROJECT_ID
 - FIREBASE_PRIVATE_KEY
 - FIREBASE_CLIENT_EMAIL
+- BOT_TOKEN
 
 Now the node app will be running on **localhost:5000** 
