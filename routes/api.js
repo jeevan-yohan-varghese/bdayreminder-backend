@@ -8,7 +8,14 @@ router.get('/', (req, res, next) => {
     res.send("Check documentation for endpoints");
 });
 
-
+const changeYear = (mPerson) => {
+    console.log(typeof mPerson);
+    let cDate = mPerson.dob;
+    cDate.setFullYear(2021);
+    let newPerson = mPerson;
+    newPerson.dob = cDate;
+    return newPerson;
+};
 //A sample route which requires authorization
 router.get('/requireAuth', verifyApiKey, verifyUserAuth, (req, res, next) => {
     res.send(`Welcome ${req.currentUser._name}`);
@@ -49,25 +56,25 @@ router.delete('/deletePerson', verifyApiKey, verifyUserAuth, (req, res, next) =>
     }
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
         let currentPeopleList = currentUser.peopleList;
-        let originalLen=currentPeopleList.length;
+        let originalLen = currentPeopleList.length;
         for (let i = 0; i < currentPeopleList.length; i++) {
             console.log(typeof currentPeopleList[i]._id.toString());
             if (currentPeopleList[i]._id.toString() === req.body.personId) {
                 console.log("Found person");
                 currentPeopleList.splice(i, 1);
-               
+
             }
         }
-        if(originalLen===currentPeopleList.length){
-            return res.json({success:false,msg:"Could not find id"});
+        if (originalLen === currentPeopleList.length) {
+            return res.json({ success: false, msg: "Could not find id" });
         }
         User.updateOne({ email: currentUser.email }, { $set: { peopleList: currentPeopleList } }).then(() => {
-            
-            console.log(peopleList);
-            return res.json({ succes: true, msg: "Person Deleted" ,data: currentPeopleList})
+
+            //console.log(peopleList);
+            return res.json({ succes: true, msg: "Person Deleted", data: currentPeopleList })
         });
-        
-        
+
+
     });
 });
 
@@ -78,25 +85,85 @@ router.patch('/updatePerson', verifyApiKey, verifyUserAuth, (req, res, next) => 
     }
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
         let currentPeopleList = currentUser.peopleList;
-        
+
         for (let i = 0; i < currentPeopleList.length; i++) {
             console.log(typeof currentPeopleList[i]._id.toString());
             if (currentPeopleList[i]._id.toString() === req.body.personId) {
                 console.log("Found person");
-                currentPeopleList[i].name=req.body.name;
-                currentPeopleList[i].dob=req.body.dob;
-                
-               
+                currentPeopleList[i].name = req.body.name;
+                currentPeopleList[i].dob = req.body.dob;
+
+
             }
         }
-        
+
         User.updateOne({ email: currentUser.email }, { $set: { peopleList: currentPeopleList } }).then(() => {
-            
+
             console.log(currentPeopleList);
-            return res.json({ succes: true, msg: "Person Updated" ,data: currentPeopleList})
+            return res.json({ succes: true, msg: "Person Updated", data: currentPeopleList })
         });
-        
-        
+
+
     });
 });
+
+//Todays birthdays
+router.get('/bornToday', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    User.findOne({ email: req.currentUser._email }).then((currentUser) => {
+        let peopleList = currentUser.peopleList;
+        peopleList.forEach((mPerson) => {
+            let mDob = new Date(mPerson.dob);
+            mDob.setFullYear(2021);
+            console.log(mDob);
+            mPerson.dob = mDob;
+        });
+
+        let todaysList = peopleList.filter((mPerson) => {
+            let mDob = new Date(mPerson.dob);
+            let today = new Date();
+            return mDob.getDate() === today.getDate() && mDob.getMonth() === today.getMonth();
+        })
+
+        res.json({ succes: true, data: todaysList });
+    });
+});
+
+
+const isAfter = (d1, d2) => {
+    console.log("Is after called");
+    let date1=new Date(d1.dob);
+    let date2=new Date(d2.dob);
+    console.log(`Date1: ${date1} Date 2: ${date2}`);
+    
+    if(date1.getDate()>date2.getDate() && date1.getMonth()===date2.getMonth()){
+        return 1;
+    }else if(date1.getMonth()>date2.getMonth()){
+        return 1;
+    }else if(date1.getDate()<date2.getDate && date1.getMonth()===date2.getMonth()){
+        return -1;
+    }else if(date1.getMonth()<date2.getMonth()){
+        return -1;
+    }
+
+    return 0;
+
+};
+//Top upcoming
+router.get('/topUpcoming', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    User.findOne({ email: req.currentUser._email }).then((currentUser) => {
+        let peopleList = currentUser.peopleList;
+
+        //List of persons born after todays date
+        let greaterList = peopleList.filter((mPerson) => {
+            let mDob = new Date(mPerson.dob);
+            let today = new Date();
+            return (mDob.getDate() > today.getDate() && mDob.getMonth() === today.getMonth()) ||
+                (mDob.getMonth() > today.getMonth());
+        });
+        let sortedList=greaterList.sort(isAfter);
+
+        res.json({ succes: true, data: sortedList });
+    });
+});
+
 module.exports = router;

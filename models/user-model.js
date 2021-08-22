@@ -19,6 +19,9 @@ const userSchema = new Schema({
   peopleList:{
     type:Array,
     default:[]
+  },
+  channelId:{
+    type:String
   }
 })
 
