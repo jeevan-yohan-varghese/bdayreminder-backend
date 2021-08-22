@@ -3,6 +3,7 @@ const verifyApiKey = require('../middlewares/verify-apikey');
 const verifyUserAuth = require('../middlewares/verify-user-auth');
 const User = require('../models/user-model');
 const Person = require('../models/person-model');
+const axios = require('axios');
 router.get('/', (req, res, next) => {
 
     res.send("Check documentation for endpoints");
@@ -131,17 +132,17 @@ router.get('/bornToday', verifyApiKey, verifyUserAuth, (req, res, next) => {
 
 const isAfter = (d1, d2) => {
     console.log("Is after called");
-    let date1=new Date(d1.dob);
-    let date2=new Date(d2.dob);
+    let date1 = new Date(d1.dob);
+    let date2 = new Date(d2.dob);
     console.log(`Date1: ${date1} Date 2: ${date2}`);
-    
-    if(date1.getDate()>date2.getDate() && date1.getMonth()===date2.getMonth()){
+
+    if (date1.getDate() > date2.getDate() && date1.getMonth() === date2.getMonth()) {
         return 1;
-    }else if(date1.getMonth()>date2.getMonth()){
+    } else if (date1.getMonth() > date2.getMonth()) {
         return 1;
-    }else if(date1.getDate()<date2.getDate && date1.getMonth()===date2.getMonth()){
+    } else if (date1.getDate() < date2.getDate && date1.getMonth() === date2.getMonth()) {
         return -1;
-    }else if(date1.getMonth()<date2.getMonth()){
+    } else if (date1.getMonth() < date2.getMonth()) {
         return -1;
     }
 
@@ -160,10 +161,62 @@ router.get('/topUpcoming', verifyApiKey, verifyUserAuth, (req, res, next) => {
             return (mDob.getDate() > today.getDate() && mDob.getMonth() === today.getMonth()) ||
                 (mDob.getMonth() > today.getMonth());
         });
-        let sortedList=greaterList.sort(isAfter);
+        let sortedList = greaterList.sort(isAfter);
 
         res.json({ succes: true, data: sortedList });
     });
+});
+//Add new person
+router.post('/verifyChannelID', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    if (!req.body.channelId) {
+        return res.status(400).json({ succes: false, msg: "Some parameters are missing.  Check documentation" });
+
+    }
+
+    try {
+        let msg = Math.floor(1000 + Math.random() * 9000).toString();
+        console.log(encodeURI(req.body.channelId));
+        console.log(process.env.BOT_TOKEN);
+        console.log(req.body.channelId);
+        axios.get(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage?chat_id=@${req.body.channelId}&text=${msg}`).then(response => {
+            res.json({
+                succes: true,
+                msg: `Success`,
+                token: msg
+            });
+
+        }).catch(error => {
+            res.status(502).send(`Error from telegram api :${error} `);
+
+        });
+
+    } catch {
+        next();
+    }
+
+
+
+
+
+});
+//Add new person
+router.post('/updateChannelId', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    if (!req.body.channelId) {
+        return res.status(400).json({ succes: false, msg: "Some parameters are missing.  Check documentation" });
+
+    }
+
+    User.findOne({ email: req.currentUser._email }).then((currentUser) => {
+
+        User.updateOne({ email: req.currentUser._email }, { $set: { channelId: req.body.channelId } }).then((updatedUser) => {
+            res.json({ succes: true, msg: "Channel ID updated" });
+        })
+    });
+
+
+
+
+
 });
 
 module.exports = router;
