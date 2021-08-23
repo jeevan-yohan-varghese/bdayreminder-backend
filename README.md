@@ -9,6 +9,7 @@ REST Api for bday reminder app which will send notifications to your telegram ch
 - [x] Schedule notification
 - [x] Upcoming birthdays
 - [x] Todays birthdays
+- [x] Upload CSV of people
 
 ## Install
 
