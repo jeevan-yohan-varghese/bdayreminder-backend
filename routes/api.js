@@ -8,7 +8,7 @@ const axios = require('axios');
 const fs = require('fs');
 const csv = require('fast-csv');
 const multer = require('multer');
-const moment= require('moment') 
+const moment = require('moment')
 
 router.get('/', (req, res, next) => {
 
@@ -250,12 +250,16 @@ const validateCsvData = (rows) => {
 }
 //upload csv
 router.post('/uploadCSV', verifyApiKey, verifyUserAuth, upload.single('file'), (req, res, next) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, msg: 'Invalid file' });
+    }
     const fileRows = [];
+
     csv.parseFile(req.file.path)
         .on("data", function (data) {
             fileRows.push(data); // push each row
             console.log(data);
-            
+
         })
         .on("end", function () {
             //console.log(fileRows);
@@ -267,8 +271,8 @@ router.post('/uploadCSV', verifyApiKey, verifyUserAuth, upload.single('file'), (
             }
 
             const peopleListToPush = [];
-            fileRows.slice(1,fileRows.length).forEach((row) => {
-                let currPerson=new Person({
+            fileRows.slice(1, fileRows.length).forEach((row) => {
+                let currPerson = new Person({
                     name: row[0],
                     dob: row[1]
                 });
@@ -283,7 +287,16 @@ router.post('/uploadCSV', verifyApiKey, verifyUserAuth, upload.single('file'), (
                 })
             });
 
+        }).on('error', (error) => {
+            fs.unlinkSync(req.file.path);   // remove temp file
+            console.log(error.toString());
+            return res.status(500).json({ success: false, msg: error.toString() });
+
         })
+
+
+
+
 });
 
 module.exports = router;
