@@ -4,10 +4,18 @@ const verifyUserAuth = require('../middlewares/verify-user-auth');
 const User = require('../models/user-model');
 const Person = require('../models/person-model');
 const axios = require('axios');
+
+const fs = require('fs');
+const csv = require('fast-csv');
+const multer = require('multer');
+const moment= require('moment') 
+
 router.get('/', (req, res, next) => {
 
     res.send("Check documentation for endpoints");
 });
+
+const upload = multer({ dest: 'tmp/csv/' });
 
 const changeYear = (mPerson) => {
     console.log(typeof mPerson);
@@ -217,6 +225,65 @@ router.post('/updateChannelId', verifyApiKey, verifyUserAuth, (req, res, next) =
 
 
 
+});
+
+const validateCsvRow = (row) => {
+    if (!row[0]) {
+        return "invalid name"
+    }
+
+    else if (!moment(row[1], "YYYY-MM-DD").isValid()) {
+        return "invalid date of birth"
+    }
+    return;
+};
+
+const validateCsvData = (rows) => {
+    const dataRows = rows.slice(1, rows.length); //ignore header at 0 and get rest of the rows
+    for (let i = 0; i < dataRows.length; i++) {
+        const rowError = validateCsvRow(dataRows[i]);
+        if (rowError) {
+            return `${rowError} on row ${i + 1}`
+        }
+    }
+    return;
+}
+//upload csv
+router.post('/uploadCSV', verifyApiKey, verifyUserAuth, upload.single('file'), (req, res, next) => {
+    const fileRows = [];
+    csv.parseFile(req.file.path)
+        .on("data", function (data) {
+            fileRows.push(data); // push each row
+            console.log(data);
+            
+        })
+        .on("end", function () {
+            //console.log(fileRows);
+            fs.unlinkSync(req.file.path);   // remove temp file
+
+            const validationError = validateCsvData(fileRows);
+            if (validationError) {
+                return res.status(403).json({ error: validationError });
+            }
+
+            const peopleListToPush = [];
+            fileRows.slice(1,fileRows.length).forEach((row) => {
+                let currPerson=new Person({
+                    name: row[0],
+                    dob: row[1]
+                });
+                peopleListToPush.push(currPerson);
+            });
+
+            User.findOne({ email: req.currentUser._email }).then((currUser) => {
+                let peopleList = currUser.peopleList;
+                let newPeopleList = peopleList.concat(peopleListToPush);
+                User.updateOne({ email: req.currentUser._email }, { $set: { peopleList: newPeopleList } }).then(() => {
+                    res.json({ succes: true, msg: "Added people", data: newPeopleList });
+                })
+            });
+
+        })
 });
 
 module.exports = router;
