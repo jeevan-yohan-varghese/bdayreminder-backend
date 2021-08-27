@@ -33,7 +33,7 @@ router.get('/requireAuth', verifyApiKey, verifyUserAuth, (req, res, next) => {
 //Add new person
 router.post('/addPerson', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (!req.body.name || !req.body.dob) {
-        return res.status(400).json({ succes: false, msg: "Some parameters are missing.  Check documentation" });
+        return res.status(400).json({ success: false, msg: "Some parameters are missing.  Check documentation" });
 
     }
     const bDate = new Date(req.body.dob);
@@ -42,7 +42,7 @@ router.post('/addPerson', verifyApiKey, verifyUserAuth, (req, res, next) => {
         let currPeopleList = currentUser.peopleList;
         currPeopleList.push(newPerson);
         User.updateOne({ email: req.currentUser._email }, { $set: { peopleList: currPeopleList } }).then((updatedUser) => {
-            res.json({ succes: true, msg: "Person added" });
+            res.json({ success: true, msg: "Person added" });
         })
     });
 
@@ -55,13 +55,13 @@ router.post('/addPerson', verifyApiKey, verifyUserAuth, (req, res, next) => {
 router.get('/listPersons', verifyApiKey, verifyUserAuth, (req, res, next) => {
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
         let peopleList = currentUser.peopleList;
-        res.json({ succes: true, data: peopleList });
+        res.json({ success: true, data: peopleList });
     });
 });
 //Delete a person
 router.delete('/deletePerson', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (!req.body.personId) {
-        return res.status(400).json({ succes: false, msg: "Required parameters not found" });
+        return res.status(400).json({ success: false, msg: "Required parameters not found" });
     }
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
         let currentPeopleList = currentUser.peopleList;
@@ -80,7 +80,7 @@ router.delete('/deletePerson', verifyApiKey, verifyUserAuth, (req, res, next) =>
         User.updateOne({ email: currentUser.email }, { $set: { peopleList: currentPeopleList } }).then(() => {
 
             //console.log(peopleList);
-            return res.json({ succes: true, msg: "Person Deleted", data: currentPeopleList })
+            return res.json({ success: true, msg: "Person Deleted", data: currentPeopleList })
         });
 
 
@@ -90,7 +90,7 @@ router.delete('/deletePerson', verifyApiKey, verifyUserAuth, (req, res, next) =>
 //Update a person
 router.patch('/updatePerson', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (!req.body.personId || !req.body.name || !req.body.dob) {
-        return res.status(400).json({ succes: false, msg: "Required parameters not found" });
+        return res.status(400).json({ success: false, msg: "Required parameters not found" });
     }
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
         let currentPeopleList = currentUser.peopleList;
@@ -109,7 +109,7 @@ router.patch('/updatePerson', verifyApiKey, verifyUserAuth, (req, res, next) => 
         User.updateOne({ email: currentUser.email }, { $set: { peopleList: currentPeopleList } }).then(() => {
 
             console.log(currentPeopleList);
-            return res.json({ succes: true, msg: "Person Updated", data: currentPeopleList })
+            return res.json({ success: true, msg: "Person Updated", data: currentPeopleList })
         });
 
 
@@ -133,7 +133,7 @@ router.get('/bornToday', verifyApiKey, verifyUserAuth, (req, res, next) => {
             return mDob.getDate() === today.getDate() && mDob.getMonth() === today.getMonth();
         })
 
-        res.json({ succes: true, data: todaysList });
+        res.json({ success: true, data: todaysList });
     });
 });
 
@@ -171,13 +171,13 @@ router.get('/topUpcoming', verifyApiKey, verifyUserAuth, (req, res, next) => {
         });
         let sortedList = greaterList.sort(isAfter);
 
-        res.json({ succes: true, data: sortedList });
+        res.json({ success: true, data: sortedList });
     });
 });
 //Add new person
 router.post('/verifyChannelID', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (!req.body.channelId) {
-        return res.status(400).json({ succes: false, msg: "Some parameters are missing.  Check documentation" });
+        return res.status(400).json({ success: false, msg: "Some parameters are missing.  Check documentation" });
 
     }
 
@@ -188,7 +188,7 @@ router.post('/verifyChannelID', verifyApiKey, verifyUserAuth, (req, res, next) =
         console.log(req.body.channelId);
         axios.get(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage?chat_id=@${req.body.channelId}&text=${msg}`).then(response => {
             res.json({
-                succes: true,
+                success: true,
                 msg: `Success`,
                 token: msg
             });
@@ -210,14 +210,14 @@ router.post('/verifyChannelID', verifyApiKey, verifyUserAuth, (req, res, next) =
 //Add new person
 router.post('/updateChannelId', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (!req.body.channelId) {
-        return res.status(400).json({ succes: false, msg: "Some parameters are missing.  Check documentation" });
+        return res.status(400).json({ success: false, msg: "Some parameters are missing.  Check documentation" });
 
     }
 
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
 
         User.updateOne({ email: req.currentUser._email }, { $set: { channelId: req.body.channelId, isTelegramTurnedOn: true } }).then((updatedUser) => {
-            res.json({ succes: true, msg: "Channel ID updated" });
+            res.json({ success: true, msg: "Channel ID updated" });
         })
     });
 
@@ -283,7 +283,7 @@ router.post('/uploadCSV', verifyApiKey, verifyUserAuth, upload.single('file'), (
                 let peopleList = currUser.peopleList;
                 let newPeopleList = peopleList.concat(peopleListToPush);
                 User.updateOne({ email: req.currentUser._email }, { $set: { peopleList: newPeopleList } }).then(() => {
-                    res.json({ succes: true, msg: "Added people", data: newPeopleList });
+                    res.json({ success: true, msg: "Added people", data: newPeopleList });
                 })
             });
 
@@ -328,7 +328,7 @@ router.post('/sendFCM', verifyApiKey, verifyUserAuth, (req, res, next) => {
 //Set fcm deviceID
 router.post('/updateDeviceId', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (!req.body.deviceId) {
-        return res.status(400).json({ succes: false, msg: "No device id specified" });
+        return res.status(400).json({ success: false, msg: "No device id specified" });
     }
 
     User.findOne({ email: req.currUser._email }).then((currUser) => {
@@ -362,7 +362,7 @@ router.get('/getUserInfo', verifyApiKey, verifyUserAuth, (req, res, next) => {
 
 router.post('/toggleTelegram', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (req.body.turnOn===undefined) {
-        return res.status(400).json({ succes: false, msg: "Parameter missing" });
+        return res.status(400).json({ success: false, msg: "Parameter missing" });
     }
 
     User.findOne({ email: req.currentUser._email }).then((currUser) => {
@@ -376,7 +376,7 @@ router.post('/toggleTelegram', verifyApiKey, verifyUserAuth, (req, res, next) =>
 });
 router.post('/togglePush', verifyApiKey, verifyUserAuth, (req, res, next) => {
     if (req.body.turnOn===undefined) {
-        return res.status(400).json({ succes: false, msg: "Parameter missing" });
+        return res.status(400).json({ success: false, msg: "Parameter missing" });
     }
 
     User.findOne({ email: req.currentUser._email }).then((currUser) => {
