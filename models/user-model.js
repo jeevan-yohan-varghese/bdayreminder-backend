@@ -22,7 +22,20 @@ const userSchema = new Schema({
   },
   channelId:{
     type:String
+  },
+  firebaseDeviceIds:{
+    type:Array,
+    default:[]
+  },
+  isTelegramTurnedOn:{
+    type:Boolean,
+    default:false
+  },
+  isPushTurnedOn:{
+    type:Boolean,
+    default:false
   }
+
 })
 
 const User = mongoose.model('user', userSchema)

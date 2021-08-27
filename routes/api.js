@@ -4,7 +4,7 @@ const verifyUserAuth = require('../middlewares/verify-user-auth');
 const User = require('../models/user-model');
 const Person = require('../models/person-model');
 const axios = require('axios');
-
+const admin = require('firebase-admin');
 const fs = require('fs');
 const csv = require('fast-csv');
 const multer = require('multer');
@@ -216,7 +216,7 @@ router.post('/updateChannelId', verifyApiKey, verifyUserAuth, (req, res, next) =
 
     User.findOne({ email: req.currentUser._email }).then((currentUser) => {
 
-        User.updateOne({ email: req.currentUser._email }, { $set: { channelId: req.body.channelId } }).then((updatedUser) => {
+        User.updateOne({ email: req.currentUser._email }, { $set: { channelId: req.body.channelId, isTelegramTurnedOn: true } }).then((updatedUser) => {
             res.json({ succes: true, msg: "Channel ID updated" });
         })
     });
@@ -298,5 +298,107 @@ router.post('/uploadCSV', verifyApiKey, verifyUserAuth, upload.single('file'), (
 
 
 });
+
+//Testing fcm
+router.post('/sendFCM', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    let fcmToken="";
+    const message = {
+        data: { content: "Test fcm message from node" },
+        notification: {
+            title: "This is a Notification",
+            body: "This is the body of the notification message."
+        },
+        token: fcmToken,
+
+    };
+
+    admin.messaging().send(message).then((response) => {
+        // Response is a message ID string.
+        console.log('Successfully sent message:', response);
+        res.json({ success: true, msg: "Successfully sent messag" });
+    })
+        .catch((error) => {
+            console.log('Error sending message:', error);
+            res.status(400).json({ success: false, msg: error });
+        });
+
+
+});
+
+//Set fcm deviceID
+router.post('/updateDeviceId', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    if (!req.body.deviceId) {
+        return res.status(400).json({ succes: false, msg: "No device id specified" });
+    }
+
+    User.findOne({ email: req.currUser._email }).then((currUser) => {
+        let currDeviceIds = currUser.firebaseDeviceIds;
+        currDeviceIds.push(req.body.deviceId);
+        User.updateOne({ email: req.currUser._email }, { $set: { firebaseDeviceIds: currDeviceIds, isPushTurnedOn: true } }).then(() => {
+            return res.json({ success: true, msg: "Device id added" });
+        });
+    });
+
+
+});
+
+//Get user info
+router.get('/getUserInfo', verifyApiKey, verifyUserAuth, (req, res, next) => {
+
+
+    User.findOne({ email: req.currentUser._email }).then((currUser) => {
+
+        return res.json({
+            name: currUser.username, 
+            email: currUser.email, 
+            profilePic: currUser.thumbnail, 
+            telegram: currUser.channelId, 
+            isTelegram: currUser.isTelegramTurnedOn, 
+            isPush: currUser.isPushTurnedOn });
+    });
+
+
+});
+
+router.post('/toggleTelegram', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    if (!req.body.turnOn) {
+        return res.status(400).json({ succes: false, msg: "Parameter missing" });
+    }
+
+    User.findOne({ email: req.currentUser._email }).then((currUser) => {
+        
+        User.updateOne({ email: req.currentUser._email }, { $set: { isTelegramTurnedOn: req.body.turnOn } }).then(() => {
+            return res.json({ success: true, msg: "Changed telegram settings" });
+        });
+    });
+
+
+});
+router.post('/togglePush', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    if (!req.body.turnOn) {
+        return res.status(400).json({ succes: false, msg: "Parameter missing" });
+    }
+
+    User.findOne({ email: req.currentUser._email }).then((currUser) => {
+        
+        User.updateOne({ email: req.currentUser._email }, { $set: { isPushTurnedOn: req.body.turnOn } }).then(() => {
+            return res.json({ success: true, msg: "Changed push notification settings" });
+        });
+    });
+
+
+});
+
+router.delete('/deleteAllPeople', verifyApiKey, verifyUserAuth, (req, res, next) => {
+    
+    User.updateOne({ email: req.currentUser._email }, { $set: { peopleList: [] } }).then(() => {
+        return res.json({ success: true, msg: "Deleted all people" });
+    });
+    
+
+
+});
+
+
 
 module.exports = router;
