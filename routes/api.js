@@ -361,7 +361,7 @@ router.get('/getUserInfo', verifyApiKey, verifyUserAuth, (req, res, next) => {
 });
 
 router.post('/toggleTelegram', verifyApiKey, verifyUserAuth, (req, res, next) => {
-    if (!req.body.turnOn) {
+    if (req.body.turnOn===undefined) {
         return res.status(400).json({ succes: false, msg: "Parameter missing" });
     }
 
@@ -375,7 +375,7 @@ router.post('/toggleTelegram', verifyApiKey, verifyUserAuth, (req, res, next) =>
 
 });
 router.post('/togglePush', verifyApiKey, verifyUserAuth, (req, res, next) => {
-    if (!req.body.turnOn) {
+    if (req.body.turnOn===undefined) {
         return res.status(400).json({ succes: false, msg: "Parameter missing" });
     }
 
